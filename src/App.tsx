@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Search, MapPin, Building2, Navigation } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
@@ -19,7 +20,6 @@ export default function App() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar datos de Supabase
   useEffect(() => {
     const cargarSucursales = async () => {
       try {
@@ -30,7 +30,6 @@ export default function App() {
 
         if (error) throw error;
         setSucursales(data || []);
-        setFiltrados(data || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar datos');
         console.error('Error:', err);
@@ -42,10 +41,9 @@ export default function App() {
     cargarSucursales();
   }, []);
 
-  // Filtrar por búsqueda (número de sucursal, razón social o localidad)
   useEffect(() => {
     if (!busqueda.trim()) {
-      setFiltrados([]);  // ← No mostrar nada si no hay búsqueda
+      setFiltrados([]);
       return;
     }
 
@@ -54,7 +52,8 @@ export default function App() {
       s.numero_sucursal.toLowerCase().includes(termino) ||
       s.razon_social.toLowerCase().includes(termino) ||
       s.nombre_sucursal?.toLowerCase().includes(termino) ||
-      s.localidad.toLowerCase().includes(termino)
+      s.localidad.toLowerCase().includes(termino) ||
+      s.domicilio_fisico.toLowerCase().includes(termino)
     );
 
     setFiltrados(resultado);
@@ -62,21 +61,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
       <header className="sticky top-0 bg-white border-b border-stone-200 shadow-sm z-10">
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-10 h-10 bg-gradient-to-r from-stone-700 to-stone-800 rounded-lg flex items-center justify-center">
               <Building2 className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-stone-900">Buscador de sucursales Esperanza & Bonpane</h1>
+            <h1 className="text-2xl font-bold text-stone-900">Buscador de Sucursales Esperanza & Bonpane</h1>
           </div>
           <p className="text-sm text-stone-600">Encuentra tu sucursal de distribución</p>
         </div>
       </header>
 
       <main className="flex-1 w-full px-4 py-6 lg:px-8">
-        {/* Buscador - Sticky en la parte superior */}
         <div className="sticky top-20 z-20 mb-6 bg-white pb-4">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-stone-400 w-5 h-5" />
@@ -93,7 +90,6 @@ export default function App() {
           </p>
         </div>
 
-        {/* Estado de carga */}
         {cargando && (
           <div className="flex flex-col items-center justify-center py-12">
             <div className="w-12 h-12 border-4 border-stone-200 border-t-stone-700 rounded-full animate-spin mb-4"></div>
@@ -101,7 +97,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Error */}
         {error && !cargando && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <p className="text-red-800 font-medium">Error al cargar los datos</p>
@@ -109,10 +104,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Resultados */}
         {!cargando && !error && (
           <>
-            {/* Info de resultados */}
             {busqueda && (
               <div className="mb-4">
                 <p className="text-sm text-stone-600">
@@ -122,7 +115,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Tarjetas de sucursales */}
             {filtrados.length > 0 ? (
               <div className="space-y-4 max-w-4xl">
                 {filtrados.map((sucursal) => (
@@ -130,7 +122,6 @@ export default function App() {
                     key={sucursal.id}
                     className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                   >
-                    {/* Header de tarjeta */}
                     <div className="bg-gradient-to-r from-stone-700 to-stone-800 px-4 py-3">
                       <div className="flex items-center justify-between">
                         <div>
@@ -150,69 +141,6 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Contenido */}
                     <div className="p-4 space-y-3">
-                      {/* Razón Social */}
                       <div>
                         <p className="text-xs text-stone-500 font-medium mb-1">Razón Social</p>
-                        <p className="text-sm font-semibold text-stone-900">
-                          {sucursal.razon_social}
-                        </p>
-                      </div>
-
-                      {/* Domicilio */}
-                      <div>
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-4 h-4 text-stone-700 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <p className="text-xs text-stone-500 font-medium mb-1">Domicilio Físico</p>
-                            <p className="text-sm text-stone-700 leading-relaxed">
-                              {sucursal.domicilio_fisico}
-                            </p>
-                            <p className="text-xs text-stone-700 font-medium mt-1">
-                              {sucursal.localidad}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Botón de Maps */}
-                      {sucursal.geolocalizacion_url ? (
-                        <a
-                          href={sucursal.geolocalizacion_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-800 hover:to-stone-900 text-white font-semibold py-3 rounded-lg transition-all active:scale-95 touch-manipulation"
-                        >
-                          <Navigation className="w-5 h-5" />
-                          Ver en Google Maps
-                        </a>
-                      ) : (
-                        <div className="mt-4 w-full py-3 bg-stone-100 text-stone-500 rounded-lg text-center text-sm font-medium">
-                          Maps no disponible
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-20">
-                <Search className="w-16 h-16 text-stone-300 mx-auto mb-4" />
-                <p className="text-stone-600 font-medium mb-2 text-lg">Comienza a buscar</p>
-                <p className="text-stone-500 text-sm">
-                  Ingresa un número de sucursal, razón social o localidad
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="mt-12 py-6 border-t border-stone-200 text-center text-xs text-stone-600">
-        <p>🍰 Distribuidor de Croissant • {sucursales.length} sucursales disponibles</p>
-      </footer>
-    </div>
-  );
-}
