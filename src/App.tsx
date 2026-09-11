@@ -210,7 +210,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="mt-12 py-6 border-t border-stone-200 text-center text-xs text-stone-600">
-        <p>🍰 Distribuidor de Croissant • {sucursales.length} sucursales disponibles</p>
+        <p>🍰 Panaderías Esperanza & Bonpane • {sucursales.length} sucursales disponibles 📌</p>
       </footer>
     </div>
   );
