@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Building2, Navigation } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
